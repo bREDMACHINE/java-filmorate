@@ -14,36 +14,26 @@ import java.util.Map;
 public class FilmController {
     private final Map<Integer, Film> films = new HashMap<>();
     private int id = 1;
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @PostMapping("/films")
-    public Film createFilm(@RequestBody Film film) throws ValidationException {
-        Film newFilm = null;
+    public Film createFilm(@RequestBody Film film) {
         if (isValidation(film)) {
             film.setId(id);
             films.put(id, film);
             id++;
-            newFilm = film;
+            return film;
         }
-        return newFilm;
+        return null;
     }
 
     @PutMapping("/films")
-    public Film updateFilm(@RequestBody Film film) throws ValidationException {
-
-        Film newFilm = null;
+    public Film updateFilm(@RequestBody Film film) {
         if (film.getId() < 1) {
             throw new ValidationException("ID не может быть меньше единицы");
         } else if (isValidation(film)) {
-            for (Film updateFilm : films.values()) {
-                if (updateFilm.getId() == film.getId()) {
-                    updateFilm.setName(film.getName());
-                    updateFilm.setDescription(film.getDescription());
-                    updateFilm.setDuration(film.getDuration());
-                    updateFilm.setReleaseDate(film.getReleaseDate());
-                    return updateFilm;
-                }
-            }
+            films.put(film.getId(), film);
+            return film;
         }
         return null;
     }
@@ -53,7 +43,7 @@ public class FilmController {
         return new ArrayList<>(films.values());
     }
 
-    boolean isValidation(Film film) throws ValidationException {
+    public boolean isValidation(Film film) {
         LocalDate filmReleaseDate = LocalDate.parse(film.getReleaseDate(), formatter);
         if (film.getName().isEmpty()) {
             throw new ValidationException("название не может быть пустым");
