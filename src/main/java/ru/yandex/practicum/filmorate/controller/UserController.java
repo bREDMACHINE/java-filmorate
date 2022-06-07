@@ -32,8 +32,8 @@ public class UserController {
 
     @PutMapping("/users")
     public User updateUser(@RequestBody User user) {
-        if (user.getId() < 1) {
-            throw new ValidationException("ID не может быть меньше единицы");
+        if  (!users.containsKey(user.getId())) {
+            throw new ValidationException("указанный ID не существует");
         } else if (isValidation(user)) {
             if (user.getName().isEmpty()) {
                 user.setName(user.getLogin());

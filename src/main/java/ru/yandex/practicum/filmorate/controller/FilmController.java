@@ -29,8 +29,8 @@ public class FilmController {
 
     @PutMapping("/films")
     public Film updateFilm(@RequestBody Film film) {
-        if (film.getId() < 1) {
-            throw new ValidationException("ID не может быть меньше единицы");
+        if (!films.containsKey(film.getId())) {
+            throw new ValidationException("указанный ID не существует");
         } else if (isValidation(film)) {
             films.put(film.getId(), film);
             return film;
