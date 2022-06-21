@@ -9,6 +9,4 @@ public interface UserStorage {
     User updateUser(User user);
     User getUser(long id);
     List<User> findAllUsers();
-    boolean isValidation(User user);
-    boolean isContain(long id);
 }

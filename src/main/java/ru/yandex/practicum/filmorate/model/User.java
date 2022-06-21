@@ -1,8 +1,9 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
-import java.util.ArrayList;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -12,6 +13,8 @@ public class User {
     private String email;
     private String login;
     private String name;
-    private String birthday;
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private LocalDate birthday;
     private Set<Long> friends = new HashSet<>();
 }

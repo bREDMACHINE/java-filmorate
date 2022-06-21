@@ -9,6 +9,4 @@ public interface FilmStorage {
     Film updateFilm(Film film);
     Film getFilm(long id);
     List<Film> findAllFilms();
-    boolean isValidation(Film film);
-    boolean isContain(long id);
 }
