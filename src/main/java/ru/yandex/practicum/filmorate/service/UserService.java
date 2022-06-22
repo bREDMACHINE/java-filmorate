@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -65,15 +64,14 @@ public class UserService {
     }
 
     public User getUser(long id) {
-        return Optional.ofNullable(inMemoryUserStorage.getUser(id))
-                .orElseThrow(() -> new NotFoundException("указанный ID не существует"));
+        return inMemoryUserStorage.getUser(id).orElseThrow(() -> new NotFoundException("указанный ID не существует"));
     }
 
     public List<User> findAllUsers() {
         return inMemoryUserStorage.findAllUsers();
     }
 
-    public boolean isValidation(User user) {
+    private boolean isValidation(User user) {
         if (user.getEmail().isEmpty() || !user.getEmail().contains("@")) {
             throw new ValidationException("электронная почта не может быть пустой и должна содержать символ @");
         } else if (user.getLogin().isEmpty() || user.getLogin().contains(" ")) {

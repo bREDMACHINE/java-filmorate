@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -53,15 +52,14 @@ public class FilmService {
     }
 
     public Film getFilm(long id) {
-        return Optional.ofNullable(inMemoryFilmStorage.getFilm(id))
-                .orElseThrow(() -> new NotFoundException("указанный ID не существует"));
+        return inMemoryFilmStorage.getFilm(id).orElseThrow(() -> new NotFoundException("указанный ID не существует"));
     }
 
     public List<Film> findAllFilms() {
         return inMemoryFilmStorage.findAllFilms();
     }
 
-    public boolean isValidation(Film film) {
+    private boolean isValidation(Film film) {
         if (film.getName().isEmpty()) {
             throw new ValidationException("название не может быть пустым");
         } else if (film.getDescription().length() > 200) {
