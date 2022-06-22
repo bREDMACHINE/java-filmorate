@@ -3,11 +3,9 @@ package ru.yandex.practicum.filmorate.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,23 +42,17 @@ public class UserService {
     }
 
     public User addUser(User user) {
-        if (isValidation(user)) {
-            if (user.getName().isEmpty()) {
-                user.setName(user.getLogin());
-            }
-            return inMemoryUserStorage.addUser(user);
+        if (user.getName().isEmpty()) {
+            user.setName(user.getLogin());
         }
-        return null;
+        return inMemoryUserStorage.addUser(user);
     }
 
     public User updateUser(User user) {
-        if (isValidation(getUser(user.getId()))) {
-            if (user.getName().isEmpty()) {
-                user.setName(user.getLogin());
-            }
-            return inMemoryUserStorage.updateUser(user);
+        if (getUser(user.getId()).getName().isEmpty()) {
+            user.setName(user.getLogin());
         }
-        return null;
+        return inMemoryUserStorage.updateUser(user);
     }
 
     public User getUser(long id) {
@@ -69,16 +61,5 @@ public class UserService {
 
     public List<User> findAllUsers() {
         return inMemoryUserStorage.findAllUsers();
-    }
-
-    private boolean isValidation(User user) {
-        if (user.getEmail().isEmpty() || !user.getEmail().contains("@")) {
-            throw new ValidationException("электронная почта не может быть пустой и должна содержать символ @");
-        } else if (user.getLogin().isEmpty() || user.getLogin().contains(" ")) {
-            throw new ValidationException("логин не может быть пустым и содержать пробелы");
-        } else if (user.getBirthday().isAfter(LocalDate.now())) {
-            throw new ValidationException("дата рождения не может быть в будущем");
-        }
-        return true;
     }
 }
