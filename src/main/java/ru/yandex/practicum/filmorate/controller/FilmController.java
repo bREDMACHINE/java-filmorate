@@ -1,59 +1,57 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
+import javax.validation.Valid;
+import javax.validation.constraints.Positive;
 import java.util.List;
-import java.util.Map;
 
+@Validated
 @RestController
 public class FilmController {
-    private final Map<Integer, Film> films = new HashMap<>();
-    private int id = 1;
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private final FilmService filmService;
 
-    @PostMapping("/films")
-    public Film createFilm(@RequestBody Film film) {
-        if (isValidation(film)) {
-            film.setId(id);
-            films.put(id, film);
-            id++;
-            return film;
-        }
-        return null;
+    @Autowired
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
     }
 
-    @PutMapping("/films")
-    public Film updateFilm(@RequestBody Film film) {
-        if (!films.containsKey(film.getId())) {
-            throw new ValidationException("указанный ID не существует");
-        } else if (isValidation(film)) {
-            films.put(film.getId(), film);
-            return film;
-        }
-        return null;
+    @GetMapping("/films/{id}")
+    public Film getFilm(@PathVariable long id) {
+        return filmService.getFilm(id);
+    }
+
+    @GetMapping("/films/popular")
+    public List<Film> getTopFilms(@RequestParam(required = false, defaultValue = "10")  @Positive int count) {
+        return filmService.getTopFilms(count);
     }
 
     @GetMapping("/films")
     public List<Film> findAll() {
-        return new ArrayList<>(films.values());
+        return filmService.findAllFilms();
     }
 
-    public boolean isValidation(Film film) {
-        LocalDate filmReleaseDate = LocalDate.parse(film.getReleaseDate(), formatter);
-        if (film.getName().isEmpty()) {
-            throw new ValidationException("название не может быть пустым");
-        } else if (film.getDescription().length() > 200) {
-            throw new ValidationException("максимальная длина описания — 200 символов");
-        } else if (filmReleaseDate.isBefore(LocalDate.of(1895, 12, 28))) {
-            throw new ValidationException("дата релиза — не может быть раньше 28 декабря 1895 года");
-        } else if (film.getDuration() < 0) {
-            throw new ValidationException("продолжительность фильма должна быть положительной");
-        }
-        return true;
+    @PostMapping("/films")
+    public Film createFilm(@Valid @RequestBody Film film) {
+        return filmService.addFilm(film);
+    }
+
+    @PutMapping("/films")
+    public Film updateFilm(@RequestBody Film film) {
+        return filmService.updateFilm(film);
+    }
+
+    @PutMapping("/films/{id}/like/{userId}")
+    public void addLikeToFilm(@PathVariable long id, @PathVariable long userId) {
+        filmService.addLike(id, userId);
+    }
+
+    @DeleteMapping("/films/{id}/like/{userId}")
+    public void removeLikeFromFilm(@PathVariable long id, @PathVariable long userId) {
+        filmService.removeLike(id, userId);
     }
 }
