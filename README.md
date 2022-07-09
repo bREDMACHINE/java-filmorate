@@ -2,7 +2,7 @@
 Template repository for Filmorate project.  
 
 ## Диаграмма базы данных  
-![](Diagrammaya.png)
+![](diagrammaya.png)
 ## Описание базы данных  
 
 ### films  
@@ -60,11 +60,11 @@ Template repository for Filmorate project.
 ### friendship  
 Содержит данные о статусе дружбы.  
 Таблица включает следующие поля:
-* первичный ключ __id_friend__ - идентификатор пользователя;  
-* внешний ключ user_id (отсылает к таблице users) - идентификаторы друзей пользователя
-* confirmation - статус свзяи "дружба", может иметь значения:  
-  - неподтверждённая — когда один пользователь отправил запрос на добавление другого пользователя в друзья,  
-  - подтверждённая — когда второй пользователь согласился на добавление.  
+* внешний ключ (часть составного ключа) friend_id (отсылает к таблице users) - идентификатор пользователя;  
+* внешний ключ (часть составного ключа) user_id (отсылает к таблице users) - идентификаторы друзей пользователя
+* confirmation - статус связи "дружба", может иметь значения:  
+  - false — когда один пользователь отправил запрос на добавление другого пользователя в друзья,  
+  - true — когда второй пользователь согласился на добавление.  
 
 ## Примеры запросов для основных операций  
 
@@ -85,13 +85,11 @@ FROM films
 ### Получение топ 10 наиболее популярных фильмов:  
 
 ```
-SELECT f.*
-FROM films AS f 
-WHERE f.film_id IN (SELECT uf.film_id
-    FROM user_films AS uf
-    GROUP BY uf.film_id
-    ORDER BY COUNT(uf.user_id) DESC
-    LIMIT 10)    
-GROUP BY f.film_id  
-ORDER BY COUNT(uf.user_id) DESC;
+SELECT *
+FROM films
+WHERE film_id IN (SELECT film_id
+    FROM user_films 
+    GROUP BY film_id
+    ORDER BY COUNT(user_id) DESC
+    LIMIT 10);
 ```
