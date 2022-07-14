@@ -19,26 +19,19 @@ public class UserService {
     }
 
     public void addToFriends(long id, long friendId) {
-        getUser(id).getFriends().add(getUser(friendId).getId());
-        getUser(friendId).getFriends().add(getUser(id).getId());
+        inMemoryUserStorage.addToFriends(getUser(id).getId(), getUser(friendId).getId());
     }
 
     public void removeFromFriends(long id, long friendId) {
-        getUser(id).getFriends().remove(getUser(friendId).getId());
-        getUser(friendId).getFriends().remove(getUser(id).getId());
+        inMemoryUserStorage.removeFromFriends(getUser(id).getId(), getUser(friendId).getId());
     }
 
     public List<User> getListGeneralFriends(long id, long otherId) {
-        return getUser(id).getFriends().stream()
-                .filter(x -> getUser(otherId).getFriends().contains(x))
-                .map(this::getUser)
-                .collect(Collectors.toList());
+        return inMemoryUserStorage.getListGeneralFriends(getUser(id).getId(),getUser(otherId).getId());
     }
 
     public List<User> getListFriends(long id) {
-        return getUser(id).getFriends().stream()
-                .map(this::getUser)
-                .collect(Collectors.toList());
+        return inMemoryUserStorage.getListFriends(getUser(id).getId());
     }
 
     public User addUser(User user) {
