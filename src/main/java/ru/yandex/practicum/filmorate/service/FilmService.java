@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
@@ -43,10 +42,10 @@ public class FilmService {
     }
 
     public Film addFilm(Film film) {
-        if (isValidation(film)) {
+        if (isValid(film)) {
             Film addedFilm = inMemoryFilmStorage.addFilm(film);
             if (film.getGenres().size() != 0) {
-                genreService.addGenresForFilm(film.getGenres(), film.getId());
+                genreService.addGenresFromFilm(film.getGenres(), film.getId());
             }
             addedFilm.setGenres(genreService.getGenresForFilm(addedFilm.getId()));
             addedFilm.setMpa(mpaService.getMPAForFilm(addedFilm.getId()));
@@ -56,11 +55,11 @@ public class FilmService {
     }
 
     public Film updateFilm(Film film) {
-        if (isValidation(getFilm(film.getId()))) {
+        if (isValid(getFilm(film.getId()))) {
             genreService.removeGenresForFilm(film.getId());
             Film updatedFilm = inMemoryFilmStorage.updateFilm(film);
             if (film.getGenres().size() != 0) {
-                genreService.addGenresForFilm(film.getGenres(), film.getId());
+                genreService.addGenresFromFilm(film.getGenres(), film.getId());
             }
 
             updatedFilm.setGenres(genreService.getGenresForFilm(updatedFilm.getId()));
@@ -71,8 +70,7 @@ public class FilmService {
     }
 
     public Film getFilm(long id) {
-        Film queriedFilm = inMemoryFilmStorage.getFilm(id)
-                .orElseThrow(() -> new NotFoundException("указанный ID не существует"));
+        Film queriedFilm = inMemoryFilmStorage.getFilm(id);
         queriedFilm.setGenres(genreService.getGenresForFilm(queriedFilm.getId()));
         queriedFilm.setMpa(mpaService.getMPAForFilm(queriedFilm.getId()));
         return queriedFilm;
@@ -82,7 +80,7 @@ public class FilmService {
         return inMemoryFilmStorage.findAllFilms();
     }
 
-    private boolean isValidation(Film film) {
+    private boolean isValid(Film film) {
         if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             throw new ValidationException("дата релиза — не может быть раньше 28 декабря 1895 года");
         }

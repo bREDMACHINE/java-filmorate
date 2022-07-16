@@ -9,8 +9,8 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Past;
 import java.time.LocalDate;
 
-@Getter
-@Setter
+@Data
+@NoArgsConstructor
 public class User {
     private long id;
     @Email(message = "электронная почта не может быть пустой и должна содержать символ @")

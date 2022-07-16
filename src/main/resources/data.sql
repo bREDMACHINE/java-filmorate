@@ -1,11 +1,11 @@
-INSERT INTO RATINGS (MPA_NAME)
+INSERT INTO ratings (mpa_name)
 VALUES ('G'),
        ('PG'),
        ('PG-13'),
        ('R'),
        ('NC-17');
 
-INSERT INTO GENRES (GENRE_NAME)
+INSERT INTO genres (genre_name)
 VALUES ('Комедия'),
         ('Драма'),
         ('Мультфильм'),

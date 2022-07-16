@@ -1,17 +1,19 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Repository
 public class FilmDbStorage implements FilmStorage {
@@ -25,11 +27,11 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film addFilm(Film film) {
-        String sqlQuery = "insert into FILMS(FILM_NAME, DESCRIPTION, MPA_ID, RELEASEDATE, DURATION, RATE) values (?, ?, ?, ?, ?, ?)";
-
+        String sqlQuery = "INSERT INTO films(film_name, description, mpa_id, releasedate, duration, rate) " +
+                "VALUES (?, ?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
-            PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"FILM_ID"});
+            PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"film_id"});
             stmt.setString(1, film.getName());
             stmt.setString(2, film.getDescription());
             if (film.getMpa() != null) {
@@ -46,8 +48,8 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film updateFilm(Film film) {
-        String sqlQuery = "update FILMS SET FILM_NAME = ?, DESCRIPTION = ?, MPA_ID = ?, RELEASEDATE = ?, DURATION = ?, RATE = ? " +
-                "WHERE FILM_ID = ?";
+        String sqlQuery = "UPDATE films SET film_name = ?, description = ?, mpa_id = ?, releasedate = ?, duration = ?, rate = ? " +
+                "WHERE film_id = ?";
         jdbcTemplate.update(sqlQuery,
                 film.getName(),
                 film.getDescription(),
@@ -60,36 +62,37 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Optional<Film> getFilm(long id) {
-        String sqlQuery = "select * from FILMS where FILM_ID = ?";
-        final List <Film> films = jdbcTemplate.query(sqlQuery, FilmDbStorage::makeFilm, id);
-        if (films.size() != 1) {
-            return Optional.empty();
+    public Film getFilm(long id) {
+        String sqlQuery = "SELECT * FROM films WHERE film_id = ?";
+        try {
+            return jdbcTemplate.queryForObject(sqlQuery, FilmDbStorage::makeFilm, id);
+        } catch (DataAccessException e) {
+            throw new NotFoundException("указанный ID не существует");
         }
-        return Optional.ofNullable(films.get(0));
     }
 
     @Override
     public List<Film> findAllFilms() {
-        String sqlQuery = "select * from FILMS";
+        String sqlQuery = "SELECT * FROM films";
         return jdbcTemplate.query(sqlQuery, FilmDbStorage::makeFilm);
     }
 
     @Override
     public void addLike(long id, long userId) {
-        String sqlQuery = "insert into USER_FILMS(FILM_ID, USER_ID) values (?, ?)";
+        String sqlQuery = "INSERT INTO user_films(film_id, user_id) VALUES (?, ?)";
         jdbcTemplate.update(sqlQuery, id, userId);
     }
 
     @Override
     public void removeLike(long id, long userId) {
-        String sqlQuery = "delete from USER_FILMS where FILM_ID = ? and USER_ID = ?";
+        String sqlQuery = "DELETE FROM user_films WHERE film_id = ? AND user_id = ?";
         jdbcTemplate.update(sqlQuery, id, userId);
     }
 
     @Override
     public List<Film> getTopFilms(int count) {
-        String sqlQuery = "select FILMS.* from FILMS left join USER_FILMS UF on FILMS.FILM_ID = UF.FILM_ID group by FILMS.FILM_ID  ORDER BY count(UF.USER_ID) DESC LIMIT ?";
+        String sqlQuery = "SELECT films.* FROM films LEFT JOIN user_films ON films.film_id = user_films.film_id " +
+                "GROUP BY films.film_id  ORDER BY COUNT(user_films.user_id) DESC LIMIT ?";
         return jdbcTemplate.query(sqlQuery, FilmDbStorage::makeFilm, count);
     }
 
