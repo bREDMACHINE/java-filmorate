@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.model.MPA;
 import ru.yandex.practicum.filmorate.storage.MPAStorage;
 
@@ -27,7 +27,7 @@ public class MPADbStorage implements MPAStorage {
         try {
             return jdbcTemplate.queryForObject(sqlQuery, MPADbStorage::makeMPA, id);
         } catch (DataAccessException e) {
-            throw new NotFoundException("указанный ID не существует");
+            throw new EntityNotFoundException("указанный ID не существует");
         }
     }
 
@@ -43,7 +43,7 @@ public class MPADbStorage implements MPAStorage {
         try {
             return jdbcTemplate.queryForObject(sqlQuery, MPADbStorage::makeMPA, id);
         } catch (DataAccessException e) {
-            throw new NotFoundException("указанный ID не существует");
+            throw new EntityNotFoundException("указанный ID не существует");
         }
     }
 

@@ -1,13 +1,12 @@
 package ru.yandex.practicum.filmorate;
 
 import lombok.RequiredArgsConstructor;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.jdbc.Sql;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MPA;
@@ -25,24 +24,68 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
+@AutoConfigureMockMvc
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:scriptForTests.sql")
 class FilmoRateApplicationTests {
     private final UserDbStorage userStorage;
     private final FilmDbStorage filmStorage;
     private final GenreDbStorage genreStorage;
     private final MPADbStorage mpaStorage;
 
+    private void addUserOne() {
+        User userOneAddInTable = new User();
+        userOneAddInTable.setName("testName");
+        userOneAddInTable.setEmail("test@test.ru");
+        userOneAddInTable.setLogin("testLogin");
+        userOneAddInTable.setBirthday(LocalDate.of(1985, 5, 18));
+        userStorage.addUser(userOneAddInTable);
+    }
+
+    private void addUserTwo() {
+        User userTwoAddInTable = new User();
+        userTwoAddInTable.setName("testNameTwo");
+        userTwoAddInTable.setEmail("testTwo@test.ru");
+        userTwoAddInTable.setLogin("testLoginTwo");
+        userTwoAddInTable.setBirthday(LocalDate.of(1990, 1, 22));
+        userStorage.addUser(userTwoAddInTable);
+    }
+
+    private void addUserThree() {
+        User userThreeAddInTable = new User();
+        userThreeAddInTable.setName("testNameThree");
+        userThreeAddInTable.setEmail("testThree@test.ru");
+        userThreeAddInTable.setLogin("testLoginThree");
+        userThreeAddInTable.setBirthday(LocalDate.of(1990, 1, 11));
+        userStorage.addUser(userThreeAddInTable);
+    }
+
+    private void addFilmOne() {
+        Film filmOneAddInTable = new Film();
+        filmOneAddInTable.setName("testNameFilm");
+        filmOneAddInTable.setDescription("testDescription");
+        filmOneAddInTable.setReleaseDate(LocalDate.of(1990, 1, 1));
+        filmOneAddInTable.setMpa(new MPA(1));
+        filmOneAddInTable.setDuration(120);
+        filmOneAddInTable.setRate(0);
+        filmStorage.addFilm(filmOneAddInTable);
+    }
+
+    private void addFilmTwo() {
+        Film filmTwoAddInTable = new Film();
+        filmTwoAddInTable.setName("testNameFilmTwo");
+        filmTwoAddInTable.setDescription("testDescriptionTwo");
+        filmTwoAddInTable.setReleaseDate(LocalDate.of(2000, 1, 1));
+        filmTwoAddInTable.setMpa(new MPA(3));
+        filmTwoAddInTable.setDuration(120);
+        filmTwoAddInTable.setRate(0);
+        filmStorage.addFilm(filmTwoAddInTable);
+    }
+
     @Test
-    @Order(1)
     void testAddUserStanFunc() {
-        User userInTable = new User();
-        userInTable.setName("testName");
-        userInTable.setEmail("test@test.ru");
-        userInTable.setLogin("testLogin");
-        userInTable.setBirthday(LocalDate.of(1985, 5, 18));
-        userStorage.addUser(userInTable);
+        addUserOne();
 
         User user = userStorage.getUser(1);
         assertThat(Optional.of(user))
@@ -58,11 +101,11 @@ class FilmoRateApplicationTests {
     }
 
     @Test
-    @Order(2)
     void testUpdateUserStanFunc() {
-        User userInTable = userStorage.getUser(1);
-        userInTable.setLogin("testName");
-        userStorage.updateUser(userInTable);
+        addUserOne();
+        User userOneUpdateInTable = userStorage.getUser(1);
+        userOneUpdateInTable.setLogin("testName");
+        userStorage.updateUser(userOneUpdateInTable);
 
         User user = userStorage.getUser(1);
         assertThat(Optional.of(user))
@@ -78,14 +121,9 @@ class FilmoRateApplicationTests {
     }
 
     @Test
-    @Order(3)
     public void testGetUserStanFunc() {
-        User userInTable = new User();
-        userInTable.setName("testNameTwo");
-        userInTable.setEmail("testTwo@test.ru");
-        userInTable.setLogin("testLoginTwo");
-        userInTable.setBirthday(LocalDate.of(1990, 1, 22));
-        userStorage.addUser(userInTable);
+        addUserOne();
+        addUserTwo();
 
         User user = userStorage.getUser(2);
         assertThat(Optional.of(user))
@@ -101,21 +139,19 @@ class FilmoRateApplicationTests {
     }
 
     @Test
-    @Order(4)
     public void testFindAllUsersStanFunc() {
+        addUserOne();
+        addUserTwo();
+
         List<User> listTwo = userStorage.findAllUsers();
         assertEquals(listTwo.size(), 2);
     }
 
     @Test
-    @Order(5)
     public void testAddToFriendsStanFunc() {
-        User userInTable = new User();
-        userInTable.setName("testNameThree");
-        userInTable.setEmail("testThree@test.ru");
-        userInTable.setLogin("testLoginThree");
-        userInTable.setBirthday(LocalDate.of(1990, 1, 11));
-        userStorage.addUser(userInTable);
+        addUserOne();
+        addUserTwo();
+        addUserThree();
         userStorage.addToFriends(1, 2);
         userStorage.addToFriends(1, 3);
 
@@ -123,17 +159,24 @@ class FilmoRateApplicationTests {
     }
 
     @Test
-    @Order(6)
     public void testRemoveFromFriendsStanFunc() {
+        addUserOne();
+        addUserTwo();
+        addUserThree();
+        userStorage.addToFriends(1, 2);
+        userStorage.addToFriends(1, 3);
         userStorage.removeFromFriends(1,3);
 
         assertEquals(userStorage.getListFriends(1).size(), 1);
     }
 
     @Test
-    @Order(7)
     public void testGetListGeneralFriendsStanFunc() {
-        userStorage.addToFriends(1,3);
+        addUserOne();
+        addUserTwo();
+        addUserThree();
+        userStorage.addToFriends(1, 2);
+        userStorage.addToFriends(1, 3);
         userStorage.addToFriends(3,1);
         userStorage.addToFriends(2,1);
 
@@ -141,29 +184,27 @@ class FilmoRateApplicationTests {
     }
 
     @Test
-    @Order(8)
     public void testGetListFriendsStanFunc() {
+        addUserOne();
+        addUserTwo();
+        addUserThree();
+        userStorage.addToFriends(1, 2);
+        userStorage.addToFriends(1, 3);
+        userStorage.addToFriends(3,1);
+        userStorage.addToFriends(2,1);
 
         assertEquals(userStorage.getListFriends(2).size(), 1);
     }
 
     @Test
-    @Order(9)
     public void testAddFilmStanFunc() {
-        Film filmInTable = new Film();
-        filmInTable.setName("testNameFilm");
-        filmInTable.setDescription("testDescription");
-        filmInTable.setReleaseDate(LocalDate.of(1990, 1, 1));
-        filmInTable.setMpa(new MPA(1));
-        filmInTable.setDuration(120);
-        filmInTable.setRate(1);
-        filmStorage.addFilm(filmInTable);
+        addFilmOne();
 
         Film film = filmStorage.getFilm(1);
         assertThat(Optional.of(film))
                 .isPresent()
-                .hasValueSatisfying(u ->
-                        assertThat(u)
+                .hasValueSatisfying(f ->
+                        assertThat(f)
                                 .hasFieldOrPropertyWithValue("id", 1L)
                                 .hasFieldOrPropertyWithValue("name", "testNameFilm")
                                 .hasFieldOrPropertyWithValue("description", "testDescription")
@@ -172,12 +213,12 @@ class FilmoRateApplicationTests {
     }
 
     @Test
-    @Order(10)
     public void testUpdateFilmStanFunc() {
-        Film filmInTable = filmStorage.getFilm(1);
-        filmInTable.setName("testUpdateName");
-        filmInTable.setMpa(new MPA(1));
-        filmStorage.updateFilm(filmInTable);
+        addFilmOne();
+        Film filmOneUpdateInTable = filmStorage.getFilm(1);
+        filmOneUpdateInTable.setName("testUpdateName");
+        filmOneUpdateInTable.setMpa(new MPA(1));
+        filmStorage.updateFilm(filmOneUpdateInTable);
 
         Film film = filmStorage.getFilm(1);
         assertThat(Optional.of(film))
@@ -192,16 +233,9 @@ class FilmoRateApplicationTests {
     }
 
     @Test
-    @Order(11)
     public void testGetFilmStanFunc() {
-        Film filmInTable = new Film();
-        filmInTable.setName("testNameFilmTwo");
-        filmInTable.setDescription("testDescriptionTwo");
-        filmInTable.setReleaseDate(LocalDate.of(2000, 1, 1));
-        filmInTable.setMpa(new MPA(3));
-        filmInTable.setDuration(120);
-        filmInTable.setRate(1);
-        filmStorage.addFilm(filmInTable);
+        addFilmOne();
+        addFilmTwo();
 
         Film film = filmStorage.getFilm(2);
         assertThat(Optional.of(film))
@@ -216,15 +250,21 @@ class FilmoRateApplicationTests {
     }
 
     @Test
-    @Order(12)
     public void testFindAllFilmsStanFunc() {
+        addFilmOne();
+        addFilmTwo();
+
         List<Film> listTwo = filmStorage.findAllFilms();
         assertEquals(listTwo.size(), 2);
     }
 
     @Test
-    @Order(13)
     public void testAddLikeStanFunc() {
+        addUserOne();
+        addUserTwo();
+        addUserThree();
+        addFilmOne();
+        addFilmTwo();
         filmStorage.addLike(1, 1);
         filmStorage.addLike(1, 2);
         filmStorage.addLike(1, 3);
@@ -236,8 +276,17 @@ class FilmoRateApplicationTests {
     }
 
     @Test
-    @Order(14)
     public void testRemoveLikeStanFunc() {
+        addUserOne();
+        addUserTwo();
+        addUserThree();
+        addFilmOne();
+        addFilmTwo();
+        filmStorage.addLike(1, 1);
+        filmStorage.addLike(1, 2);
+        filmStorage.addLike(1, 3);
+        filmStorage.addLike(2, 1);
+        filmStorage.addLike(2, 2);
         filmStorage.removeLike(1,3);
         filmStorage.removeLike(1,2);
 
@@ -246,17 +295,19 @@ class FilmoRateApplicationTests {
     }
 
     @Test
-    @Order(15)
     public void testGetTopFilmsStanFunc() {
-        filmStorage.removeLike(2,2);
-        filmStorage.removeLike(2,1);
+        addUserOne();
+        addUserTwo();
+        addUserThree();
+        addFilmOne();
+        addFilmTwo();
+        filmStorage.addLike(2, 1);
 
         List<Film> topFilm = filmStorage.getTopFilms(1);
-        assertEquals(topFilm, List.of(filmStorage.getFilm(1)));
+        assertEquals(topFilm, List.of(filmStorage.getFilm(2)));
     }
 
     @Test
-    @Order(16)
     public void testGetGenreStanFunc() {
         Genre genre = genreStorage.getGenre(2);
         assertThat(Optional.of(genre))
@@ -269,16 +320,16 @@ class FilmoRateApplicationTests {
     }
 
     @Test
-    @Order(17)
     public void testFindAllGenreStanFunc() {
 
-        List<Film> listTwo = filmStorage.findAllFilms();
-        assertEquals(listTwo.size(), 2);
+        List<Genre> listTwo = genreStorage.findAllGenre();
+        assertEquals(listTwo.size(), 6);
     }
 
     @Test
-    @Order(18)
     public void testAddGenresFromFilmStanFunc() {
+        addFilmOne();
+        addFilmTwo();
         List<Genre> fromFilm = List.of(new Genre(1), new Genre(3));
         genreStorage.addGenresFromFilm(fromFilm, 1);
 
@@ -287,8 +338,9 @@ class FilmoRateApplicationTests {
     }
 
     @Test
-    @Order(19)
     public void testGetGenresForFilmStanFunc() {
+        addFilmOne();
+        addFilmTwo();
         List<Genre> fromFilm = List.of(new Genre(2), new Genre(5), new Genre(6));
         genreStorage.addGenresFromFilm(fromFilm, 2);
 
@@ -297,8 +349,11 @@ class FilmoRateApplicationTests {
     }
 
     @Test
-    @Order(20)
     public void testRemoveGenresForFilmStanFunc() {
+        addFilmOne();
+        addFilmTwo();
+        List<Genre> fromFilm = List.of(new Genre(2), new Genre(5), new Genre(6));
+        genreStorage.addGenresFromFilm(fromFilm, 2);
         genreStorage.removeGenresForFilm(2);
 
         List<Genre> forFilm = genreStorage.getGenresForFilm(2);
@@ -306,7 +361,6 @@ class FilmoRateApplicationTests {
     }
 
     @Test
-    @Order(21)
     public void testGetMPAStanFunc() {
         MPA rating = mpaStorage.getMPA(2);
         assertThat(Optional.of(rating))
@@ -319,15 +373,15 @@ class FilmoRateApplicationTests {
     }
 
     @Test
-    @Order(22)
     public void testFindAllMPAStanFunc() {
         List<MPA> listTwo = mpaStorage.findAllMPA();
         assertEquals(listTwo.size(), 5);
     }
 
     @Test
-    @Order(23)
     public void testGetMPAForFilmStanFunc() {
+        addFilmOne();
+        addFilmTwo();
 
         MPA mpa = mpaStorage.getMPAForFilm(2);
         assertEquals(mpa.getName(), "PG-13");
