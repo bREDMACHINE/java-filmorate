@@ -2,12 +2,10 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -19,26 +17,19 @@ public class UserService {
     }
 
     public void addToFriends(long id, long friendId) {
-        getUser(id).getFriends().add(getUser(friendId).getId());
-        getUser(friendId).getFriends().add(getUser(id).getId());
+        inMemoryUserStorage.addToFriends(getUser(id).getId(), getUser(friendId).getId());
     }
 
     public void removeFromFriends(long id, long friendId) {
-        getUser(id).getFriends().remove(getUser(friendId).getId());
-        getUser(friendId).getFriends().remove(getUser(id).getId());
+        inMemoryUserStorage.removeFromFriends(getUser(id).getId(), getUser(friendId).getId());
     }
 
     public List<User> getListGeneralFriends(long id, long otherId) {
-        return getUser(id).getFriends().stream()
-                .filter(x -> getUser(otherId).getFriends().contains(x))
-                .map(this::getUser)
-                .collect(Collectors.toList());
+        return inMemoryUserStorage.getListGeneralFriends(getUser(id).getId(),getUser(otherId).getId());
     }
 
     public List<User> getListFriends(long id) {
-        return getUser(id).getFriends().stream()
-                .map(this::getUser)
-                .collect(Collectors.toList());
+        return inMemoryUserStorage.getListFriends(getUser(id).getId());
     }
 
     public User addUser(User user) {
@@ -56,7 +47,7 @@ public class UserService {
     }
 
     public User getUser(long id) {
-        return inMemoryUserStorage.getUser(id).orElseThrow(() -> new NotFoundException("указанный ID не существует"));
+        return inMemoryUserStorage.getUser(id);
     }
 
     public List<User> findAllUsers() {

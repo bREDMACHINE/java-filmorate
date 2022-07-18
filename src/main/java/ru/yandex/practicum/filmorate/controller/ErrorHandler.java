@@ -4,7 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 
 import javax.validation.ConstraintViolationException;
@@ -22,7 +22,7 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    public ResponseEntity<Map<String, String>> handleNotFoundException(final NotFoundException e) {
+    public ResponseEntity<Map<String, String>> handleNotFoundException(final EntityNotFoundException e) {
         return new ResponseEntity<>(
                 Map.of("NotFound Error", e.getMessage()),
                 HttpStatus.NOT_FOUND
