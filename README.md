@@ -1,5 +1,6 @@
 # java-filmorate  
-Template repository for Filmorate project.  
+Приложение предназначено для определения рейтинга фильмов пользователями посредством лайков.
+Приложение написано с применением ООП, REST API с помощью Spring Boot, Maven, JDBC, lombok и базой данных (H2), протестировано с помощью библиотеки JUnit.  
 
 ## Диаграмма базы данных  
 ![](schema.png)
